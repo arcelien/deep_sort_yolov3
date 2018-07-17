@@ -18,19 +18,55 @@ from PIL import Image, ImageFont, ImageDraw
 from yolo3.model import yolo_eval
 from yolo3.utils import letterbox_image
 
+import tensorflow as tf
+
 class YOLO(object):
     def __init__(self):
-        self.model_path = 'model_data/yolo.h5'
-        self.anchors_path = 'model_data/yolo_anchors.txt'
-        self.classes_path = 'model_data/coco_classes.txt'
-        self.score = 0.5
-        self.iou = 0.5
-        self.class_names = self._get_class()
-        self.anchors = self._get_anchors()
-        self.sess = K.get_session()
-        self.model_image_size = (416, 416) # fixed size or (None, None)
-        self.is_fixed_size = self.model_image_size != (None, None)
-        self.boxes, self.scores, self.classes = self.generate()
+        self.is_frozen = True
+        self.freeze_quantized = False
+
+        if not self.is_frozen:
+            self.model_path = 'model_data/yolo.h5'
+            self.anchors_path = 'model_data/yolo_anchors.txt'
+            self.classes_path = 'model_data/coco_classes.txt'
+            self.score = 0.5
+            self.iou = 0.5
+            self.class_names = self._get_class()
+            self.anchors = self._get_anchors()
+            self.sess = K.get_session()
+            self.model_image_size = (416, 416) # fixed size or (None, None)
+            self.is_fixed_size = self.model_image_size != (None, None)
+            self.boxes, self.scores, self.classes = self.generate()
+
+        else:
+            self.sess = K.get_session()
+            self.model_image_size = (416, 416) # fixed size or (None, None)
+            self.is_fixed_size = self.model_image_size != (None, None)
+            self.classes_path = 'model_data/coco_classes.txt'
+            self.class_names = self._get_class()
+            if self.is_frozen:
+                # load the frozen model
+                with self.sess.graph.as_default():
+                    output_graph_def = tf.GraphDef()
+                    frozen_model_name = './yolo_model_total'
+                    if self.freeze_quantized:
+                        frozen_model_name += '_quantized'
+                    frozen_model_name += '.pb'
+                    with open(frozen_model_name, "rb") as f:
+                        output_graph_def.ParseFromString(f.read())
+                        tf.import_graph_def(output_graph_def, name="")
+                    print(len(output_graph_def.node))
+                    for node in output_graph_def.node:
+                        assert "Variable" != node.op
+                        if ("input" in node.op) or ("placeholder" in node.op):
+                            print(node.op)
+
+                    sess = self.sess
+                    self.boxes = sess.graph.get_tensor_by_name("output_boxes:0")
+                    self.scores = sess.graph.get_tensor_by_name("output_scores:0")
+                    self.classes = sess.graph.get_tensor_by_name("output_classes:0")
+                    self.input_image_shape = sess.graph.get_tensor_by_name("Placeholder_366:0")
+                    self.yolo_input = sess.graph.get_tensor_by_name("input_1:0")
 
     def _get_class(self):
         classes_path = os.path.expanduser(self.classes_path)
@@ -87,13 +123,56 @@ class YOLO(object):
         image_data /= 255.
         image_data = np.expand_dims(image_data, 0)  # Add batch dimension.
         
-        out_boxes, out_scores, out_classes = self.sess.run(
-            [self.boxes, self.scores, self.classes],
-            feed_dict={
-                self.yolo_model.input: image_data,
-                self.input_image_shape: [image.size[1], image.size[0]],
-                K.learning_phase(): 0
-            })
+        if not self.is_frozen:
+            out_boxes, out_scores, out_classes = self.sess.run(
+                [self.boxes, self.scores, self.classes],
+                feed_dict={
+                    self.yolo_model.input: image_data,
+                    self.input_image_shape: [image.size[1], image.size[0]],
+                    K.learning_phase(): 0
+                })
+        else:
+            out_boxes, out_scores, out_classes = self.sess.run(
+                [self.boxes, self.scores, self.classes],
+                feed_dict={
+                    self.yolo_input: image_data,
+                    self.input_image_shape: [image.size[1], image.size[0]],
+                    K.learning_phase(): 0
+                })
+
+        # print(out_boxes, out_scores, out_classes)
+        print(out_boxes.shape, out_scores.shape, out_classes.shape)
+        
+        def model_saver():
+            # save the model
+            sess = self.sess
+
+            # save to tensorboard to visualize
+            summary_writer = tf.summary.FileWriter(logdir='./logs/')
+            summary_writer.add_graph(graph=sess.graph)
+            print('saved tb graph')
+
+            pred_node_names = ["output_boxes", "output_scores", "output_classes"]
+            output_fld = './'
+            output_model_file = 'yolo_model_total'
+            from tensorflow.python.framework import graph_util
+            from tensorflow.python.framework import graph_io
+            if self.freeze_quantized: # quantize
+                from tensorflow.tools.graph_transforms import TransformGraph
+                transforms = ["quantize_weights", "quantize_nodes"]
+                transformed_graph_def = TransformGraph(sess.graph.as_graph_def(), [], pred_node_names, transforms)
+                constant_graph = graph_util.convert_variables_to_constants(sess, transformed_graph_def, pred_node_names)
+                output_model_file += "_quantized"
+            else:
+                constant_graph = graph_util.convert_variables_to_constants(sess, sess.graph.as_graph_def(), pred_node_names)
+            output_model_file += ".pb"
+            graph_io.write_graph(constant_graph, output_fld, output_model_file, as_text=False)
+            print('saved the freezed graph (ready for inference) at: ', output_fld + output_model_file + '.pb')
+            assert False
+
+        if not self.is_frozen:
+            model_saver()
+
         return_boxs = []
         for i, c in reversed(list(enumerate(out_classes))):
             predicted_class = self.class_names[c]

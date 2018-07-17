@@ -1,0 +1,8 @@
+*.pyc
+*.mp4
+*.pb
+*.weights
+*.h5
+*.avi
+logs/
+

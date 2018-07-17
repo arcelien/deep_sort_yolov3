@@ -193,6 +193,9 @@ def yolo_eval(yolo_outputs,
     boxes_ = K.concatenate(boxes_, axis=0)
     scores_ = K.concatenate(scores_, axis=0)
     classes_ = K.concatenate(classes_, axis=0)
+    boxes_ = tf.identity(boxes_, name="output_boxes")
+    scores_ = tf.identity(scores_, name="output_scores")
+    classes_ = tf.identity(classes_, name="output_classes")
 
     return boxes_, scores_, classes_
 
