@@ -26,7 +26,7 @@ class YOLO(object):
         self.is_frozen = True
         self.freeze_quantized = False
 
-        if not self.do_freezing or not self.is_frozen:
+        if self.do_freezing or not self.is_frozen:
             self.model_path = 'model_data/yolo.h5'
             self.anchors_path = 'model_data/yolo_anchors.txt'
             self.classes_path = 'model_data/coco_classes.txt'
@@ -124,7 +124,7 @@ class YOLO(object):
         image_data /= 255.
         image_data = np.expand_dims(image_data, 0)  # Add batch dimension.
         
-        if not self.do_freezing and not self.is_frozen:
+        if self.do_freezing and not self.is_frozen:
             out_boxes, out_scores, out_classes = self.sess.run(
                 [self.boxes, self.scores, self.classes],
                 feed_dict={
@@ -171,7 +171,7 @@ class YOLO(object):
             print('saved the freezed graph (ready for inference) at: ', output_fld + output_model_file + '.pb')
             assert False
 
-        if not self.do_freezing and not self.is_frozen:
+        if self.do_freezing and not self.is_frozen:
             model_saver()
 
         return_boxs = []
