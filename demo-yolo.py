@@ -23,11 +23,12 @@ warnings.filterwarnings('ignore')
 
 
 def main(yolo):
-    image = cv2.imread("image_00016.png") #fromarray(frame)
-    frame = image
-    image2 = Image.open("image_00016.png")
+    # open images
+    image_name = "image_00016"
+    frame = cv2.imread(image_name+".png") #fromarray(frame)
+    image2 = Image.open(image_name+".png")
 
-    print("input to yolo", image.shape)
+    print("raw image shape", frame.shape)
 
     boxs = yolo.detect_image(image2)
 
@@ -39,12 +40,20 @@ def main(yolo):
         ret[2:] += ret[:2]
         return ret
 
+    # test ENCODER
+    # Definition of the parameters
+    model_filename = 'model_data/mars-small128.pb'
+    encoder = gdet.create_box_encoder(model_filename, batch_size=1)
+    features = encoder(frame, boxs)
+    print("encoder output, shape (N, 128)", features.shape, type(features))
+
+    # test YOLO model ONLY
     for bbox in boxs:
         bbox = tlbr(bbox)
         print('printed, postprocessed bbox [x1/y1/x2/y2]:', bbox)
         cv2.rectangle(frame, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), (255, 0, 0), 2)
 
-    cv2.imshow('', image)
+    cv2.imshow('', frame)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 

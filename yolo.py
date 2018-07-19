@@ -123,7 +123,7 @@ class YOLO(object):
         #print(image_data.shape)
         image_data /= 255.
         image_data = np.expand_dims(image_data, 0)  # Add batch dimension.
-        
+
         if self.do_freezing and not self.is_frozen:
             out_boxes, out_scores, out_classes = self.sess.run(
                 [self.boxes, self.scores, self.classes],
@@ -133,6 +133,8 @@ class YOLO(object):
                     K.learning_phase(): 0
                 })
         else:
+            print('input to yolo', image.size, image_data.shape)
+
             out_boxes, out_scores, out_classes = self.sess.run(
                 [self.boxes, self.scores, self.classes],
                 feed_dict={
@@ -141,7 +143,7 @@ class YOLO(object):
                     K.learning_phase(): 0
                 })
 
-        # print(out_boxes, out_scores, out_classes)
+        print(out_boxes, out_scores, out_classes)
         print(out_boxes.shape, out_scores.shape, out_classes.shape)
         
         def model_saver():
