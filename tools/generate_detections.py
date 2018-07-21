@@ -47,7 +47,7 @@ def extract_image_patch(image, bbox, patch_shape):
     """
     bbox = np.array(bbox)
 
-    print('before box:', bbox)
+    # print('before box:', bbox)
 
     if patch_shape is not None:
         # correct aspect ratio to patch shape
@@ -66,7 +66,7 @@ def extract_image_patch(image, bbox, patch_shape):
     if np.any(bbox[:2] >= bbox[2:]):
         return None
 
-    print('after box', bbox)
+    # print('after box', bbox)
 
     sx, sy, ex, ey = bbox
     image = image[sy:ey, sx:ex]
@@ -90,7 +90,7 @@ class ImageEncoder(object):
 
         assert len(self.output_var.get_shape()) == 2
         assert len(self.input_var.get_shape()) == 4
-        print(self.output_var, self.input_var)
+        # print(self.output_var, self.input_var)
 
         self.feature_dim = self.output_var.get_shape().as_list()[-1]
         self.image_shape = self.input_var.get_shape().as_list()[1:]
@@ -107,7 +107,7 @@ def create_box_encoder(model_filename, input_name="images",
                        output_name="features", batch_size=32):
     image_encoder = ImageEncoder(model_filename, input_name, output_name)
     image_shape = image_encoder.image_shape
-    print('encoder takes in shape:', image_shape)
+    # print('encoder takes in shape:', image_shape)
 
     def encoder(image, boxes):
         image_patches = []

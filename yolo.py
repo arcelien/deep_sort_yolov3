@@ -56,11 +56,11 @@ class YOLO(object):
                     with open(frozen_model_name, "rb") as f:
                         output_graph_def.ParseFromString(f.read())
                         tf.import_graph_def(output_graph_def, name="")
-                    print(len(output_graph_def.node))
+                    # print(len(output_graph_def.node))
                     for node in output_graph_def.node:
                         assert "Variable" != node.op
-                        if ("input" in node.op) or ("placeholder" in node.op):
-                            print(node.op)
+                    #     if ("input" in node.op) or ("placeholder" in node.op):
+                    #         print(node.op)
 
                     sess = self.sess
                     self.boxes = sess.graph.get_tensor_by_name("output_boxes:0")
@@ -133,7 +133,7 @@ class YOLO(object):
                     K.learning_phase(): 0
                 })
         else:
-            print('input to yolo', image.size, image_data.shape)
+            # print('input to yolo', image.size, image_data.shape)
 
             out_boxes, out_scores, out_classes = self.sess.run(
                 [self.boxes, self.scores, self.classes],
@@ -143,8 +143,8 @@ class YOLO(object):
                     K.learning_phase(): 0
                 })
 
-        print(out_boxes, out_scores, out_classes)
-        print(out_boxes.shape, out_scores.shape, out_classes.shape)
+        # print(out_boxes, out_scores, out_classes)
+        # print(out_boxes.shape, out_scores.shape, out_classes.shape)
         
         def model_saver():
             # save the model

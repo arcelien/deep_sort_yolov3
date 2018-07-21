@@ -20,6 +20,7 @@ from tools import generate_detections as gdet
 from deep_sort.detection import Detection as ddet
 warnings.filterwarnings('ignore')
 
+
 def main(yolo):
 
    # Definition of the parameters
@@ -33,26 +34,15 @@ def main(yolo):
     
     metric = nn_matching.NearestNeighborDistanceMetric("cosine", max_cosine_distance, nn_budget)
     tracker = Tracker(metric)
-
-    writeVideo_flag = True 
     
-    video_capture = cv2.VideoCapture('/home/danho/Documents/deep_sort_yolov3/video_walking_nyc.mp4')
-
-    if writeVideo_flag:
-    # Define the codec and create VideoWriter object
-        w = int(video_capture.get(3))
-        h = int(video_capture.get(4))
-        fourcc = cv2.VideoWriter_fourcc(*'MJPG')
-        out = cv2.VideoWriter('output.avi', fourcc, 15, (w, h))
-        list_file = open('detection.txt', 'w')
-        frame_index = -1 
-        
     fps = 0.0
+    index = 0
+    image_name = "isaac-dataset/image_"
     while True:
-        ret, frame = video_capture.read()  # frame shape 640*480*3
-        # frame = frame[..., ::-1]
-        if ret != True:
-            break;
+        if index > 81:
+            break
+        frame = cv2.imread(image_name + "%05d" % index +".png")  # frame shape 640*480*3
+        index += 1
         t1 = time.time()
 
         image = Image.fromarray(frame)
@@ -84,16 +74,6 @@ def main(yolo):
             cv2.rectangle(frame,(int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])),(255,0,0), 2)
             
         cv2.imshow('', frame)
-        
-        if writeVideo_flag:
-            # save a frame
-            out.write(frame)
-            frame_index = frame_index + 1
-            list_file.write(str(frame_index)+' ')
-            if len(boxs) != 0:
-                for i in range(0,len(boxs)):
-                    list_file.write(str(boxs[i][0]) + ' '+str(boxs[i][1]) + ' '+str(boxs[i][2]) + ' '+str(boxs[i][3]) + ' ')
-            list_file.write('\n')
             
         fps  = ( fps + (1./(time.time()-t1)) ) / 2
         print("fps= %f"%(fps))
@@ -102,11 +82,7 @@ def main(yolo):
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
-    video_capture.release()
-    if writeVideo_flag:
-        out.release()
-        list_file.close()
-    cv2.destroyAllWindows()
+        # time.sleep(0.1)
 
 if __name__ == '__main__':
     main(YOLO())
