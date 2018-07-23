@@ -1,21 +1,23 @@
+# Files Needed
 
-# Introduction
-
-  https://github.com/nwojke/deep_sort
-  
-  https://github.com/qqwweee/keras-yolo3
-
-# Quick Start
-
+## Freezing yolo model
 1. Download YOLOv3 weights from [YOLO website](http://pjreddie.com/darknet/yolo/).
 2. Convert the Darknet YOLO model to a Keras model.
-3. Run YOLO_DEEP_SORT 
 
 ```
    wget https://pjreddie.com/media/files/yolov3.weights
    python convert.py yolov3.cfg yolov3.weights model_data/yolo.h5
    python demo.py
 ```
+
+3. Run `demo.py` with `self.do_freezing=True` in `yolo.py`
+
+## Getting mars-small128.pb
+1. Download resources from https://owncloud.uni-koblenz.de/owncloud/s/f9JB0Jr7f3zzqs8
+2. Freeze the model with `tools/freeze_model.py`
+
+## Get the dataset
+Put a dataset of pictures in the main directory
 
 # Dependencies
 
