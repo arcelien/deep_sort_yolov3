@@ -175,3 +175,15 @@ class NearestNeighborDistanceMetric(object):
         for i, target in enumerate(targets):
             cost_matrix[i, :] = self._metric(self.samples[target], features)
         return cost_matrix
+
+
+if __name__ == "__main__":
+    m = np.eye(2)
+    n = np.eye(2)
+    print(_cosine_distance(m, n))
+    print(_nn_cosine_distance(m, n))
+    m = np.array([[1,2], [3,4]])
+    n = np.matrix([[1,2], [3,4]])
+    print(_cosine_distance(m, n, data_is_normalized=True))
+    print(_nn_cosine_distance(m, n))
+
