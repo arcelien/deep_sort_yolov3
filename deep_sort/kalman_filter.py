@@ -225,14 +225,13 @@ class KalmanFilter(object):
 
         cholesky_factor = np.linalg.cholesky(covariance)
 
-        print("measurements", measurements)
-        print("CHOLESKY FACTOR", cholesky_factor)
+        # print("measurements", measurements)
+        # print("CHOLESKY FACTOR", cholesky_factor)
 
         d = measurements - mean
         z = scipy.linalg.solve_triangular(
             cholesky_factor, d.T, lower=True, check_finite=False,
             overwrite_b=True)
         squared_maha = np.sum(z * z, axis=0)
-        print("d, z, squared_maha", d, z, squared_maha)
-        assert False
-        return squared_maha
+        # print("d, z, squared_maha", d, z, squared_maha)
+        return squared_maha 

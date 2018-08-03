@@ -52,12 +52,12 @@ def min_cost_matching(
         detection_indices = np.arange(len(detections))
 
     if len(detection_indices) == 0 or len(track_indices) == 0:
-        print('aborting min_cost_matching')
+        # print('aborting min_cost_matching')
         return [], track_indices, detection_indices  # Nothing to match.
 
     cost_matrix = distance_metric(
         tracks, detections, track_indices, detection_indices)
-    print('cost matrix', cost_matrix, 'distance_metric', distance_metric)
+    # print('cost matrix', cost_matrix, 'distance_metric', distance_metric)
     cost_matrix[cost_matrix > max_distance] = max_distance + 1e-5
     indices = linear_assignment(cost_matrix)
     # print(indices)
@@ -75,9 +75,9 @@ def min_cost_matching(
         if cost_matrix[row, col] > max_distance:
             unmatched_tracks.append(track_idx)
             unmatched_detections.append(detection_idx)
-            print("COST EXCEEDED!!", row, col, cost_matrix[row, col])
+            # print("COST EXCEEDED!!", row, col, cost_matrix[row, col])
         else:
-            print("cost not exceeded", row, col, cost_matrix[row, col])
+            # print("cost not exceeded", row, col, cost_matrix[row, col])
             matches.append((track_idx, detection_idx))
     return matches, unmatched_tracks, unmatched_detections
 
@@ -193,10 +193,10 @@ def gate_cost_matrix(
         [detections[i].to_xyah() for i in detection_indices])
     for row, track_idx in enumerate(track_indices):
         track = tracks[track_idx]
-        print("gating distance TRACK STATS", track.mean, track.covariance, measurements)
+        # print("gating distance TRACK STATS", track.mean, track.covariance, measurements)
         gating_distance = kf.gating_distance(
             track.mean, track.covariance, measurements, only_position)
-        print("gating distance in gate cost matrix", gating_distance)
+        # print("gating distance in gate cost matrix", gating_distance)
         cost_matrix[row, gating_distance > gating_threshold] = gated_cost
     return cost_matrix
 

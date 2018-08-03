@@ -22,13 +22,13 @@ import tensorflow as tf
 
 class YOLO(object):
     def __init__(self):
-        self.do_freezing = False
-        self.is_frozen = True
-        self.freeze_quantized = False
+        self.do_freezing = False # whether to save a freezed model
+        self.is_frozen = True # whether to load a frozen model or just normal weights
+        self.freeze_quantized = False # whether to do quantization while freezing
 
         if self.do_freezing or not self.is_frozen:
-            self.model_path = 'model_data/yolo.h5'
-            self.anchors_path = 'model_data/yolo_anchors.txt'
+            self.model_path = 'model_data/yolo_tiny.h5'
+            self.anchors_path = 'model_data/tiny_yolo_anchors.txt'
             self.classes_path = 'model_data/coco_classes.txt'
             self.score = 0.5
             self.iou = 0.5
@@ -49,7 +49,7 @@ class YOLO(object):
                 # load the frozen model
                 with self.sess.graph.as_default():
                     output_graph_def = tf.GraphDef()
-                    frozen_model_name = './yolo_model_total'
+                    frozen_model_name = './tiny_yolo_model_total'
                     if self.freeze_quantized:
                         frozen_model_name += '_quantized'
                     frozen_model_name += '.pb'
@@ -66,7 +66,7 @@ class YOLO(object):
                     self.boxes = sess.graph.get_tensor_by_name("output_boxes:0")
                     self.scores = sess.graph.get_tensor_by_name("output_scores:0")
                     self.classes = sess.graph.get_tensor_by_name("output_classes:0")
-                    self.input_image_shape = sess.graph.get_tensor_by_name("Placeholder_366:0")
+                    self.input_image_shape = sess.graph.get_tensor_by_name("Placeholder_59:0")
                     self.yolo_input = sess.graph.get_tensor_by_name("input_1:0")
 
     def _get_class(self):
@@ -157,7 +157,7 @@ class YOLO(object):
 
             pred_node_names = ["output_boxes", "output_scores", "output_classes"]
             output_fld = './'
-            output_model_file = 'yolo_model_total'
+            output_model_file = 'tiny_yolo_model_total'
             from tensorflow.python.framework import graph_util
             from tensorflow.python.framework import graph_io
             if self.freeze_quantized: # quantize
@@ -170,7 +170,7 @@ class YOLO(object):
                 constant_graph = graph_util.convert_variables_to_constants(sess, sess.graph.as_graph_def(), pred_node_names)
             output_model_file += ".pb"
             graph_io.write_graph(constant_graph, output_fld, output_model_file, as_text=False)
-            print('saved the freezed graph (ready for inference) at: ', output_fld + output_model_file + '.pb')
+            print('saved the freezed graph (ready for inference) at: ', output_fld + output_model_file)
             assert False
 
         if self.do_freezing and not self.is_frozen:

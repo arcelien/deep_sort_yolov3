@@ -31,7 +31,6 @@ def main(yolo):
    # deep_sort 
     model_filename = 'model_data/mars-small128.pb'
     encoder = gdet.create_box_encoder(model_filename,batch_size=1)
-    
     metric = nn_matching.NearestNeighborDistanceMetric("cosine", max_cosine_distance, nn_budget)
     tracker = Tracker(metric)
     
@@ -50,10 +49,13 @@ def main(yolo):
         frame = cv2.imread(image_name_full)  # frame shape 640*480*3
         index += 1
         t1 = time.time()
+        print('input image shape', frame.shape)
 
         image = Image.fromarray(frame)
         boxs = yolo.detect_image(image)
-        # print("box_num",len(boxs))
+        print("box_num",len(boxs))
+        print("boxes", boxs)
+
         features = encoder(frame,boxs)
         # score to 1.0 here).
         detections = [Detection(bbox, 1.0, feature) for bbox, feature in zip(boxs, features)]
