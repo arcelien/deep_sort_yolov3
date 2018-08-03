@@ -39,15 +39,21 @@ def main(yolo):
     index = 0
     image_name = "isaac-dataset/image_"
     while True:
+        if index < 13 + 3:
+            index += 1
+            continue
+		
+        image_name_full = image_name + "%05d" % index +".png"
+        print(image_name_full)
         if index > 81:
             break
-        frame = cv2.imread(image_name + "%05d" % index +".png")  # frame shape 640*480*3
+        frame = cv2.imread(image_name_full)  # frame shape 640*480*3
         index += 1
         t1 = time.time()
 
         image = Image.fromarray(frame)
         boxs = yolo.detect_image(image)
-       # print("box_num",len(boxs))
+        # print("box_num",len(boxs))
         features = encoder(frame,boxs)
         # score to 1.0 here).
         detections = [Detection(bbox, 1.0, feature) for bbox, feature in zip(boxs, features)]
@@ -73,7 +79,7 @@ def main(yolo):
             bbox = det.to_tlbr()
             cv2.rectangle(frame,(int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])),(255,0,0), 2)
             
-        cv2.imshow('', frame)
+        # cv2.imshow('', frame)
             
         fps  = ( fps + (1./(time.time()-t1)) ) / 2
         print("fps= %f"%(fps))

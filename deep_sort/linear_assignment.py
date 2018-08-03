@@ -45,17 +45,22 @@ def min_cost_matching(
 
     """
     if track_indices is None:
+        assert False
         track_indices = np.arange(len(tracks))
     if detection_indices is None:
+        assert False
         detection_indices = np.arange(len(detections))
 
     if len(detection_indices) == 0 or len(track_indices) == 0:
+        print('aborting min_cost_matching')
         return [], track_indices, detection_indices  # Nothing to match.
 
     cost_matrix = distance_metric(
         tracks, detections, track_indices, detection_indices)
+    print('cost matrix', cost_matrix, 'distance_metric', distance_metric)
     cost_matrix[cost_matrix > max_distance] = max_distance + 1e-5
     indices = linear_assignment(cost_matrix)
+    # print(indices)
 
     matches, unmatched_tracks, unmatched_detections = [], [], []
     for col, detection_idx in enumerate(detection_indices):
@@ -70,7 +75,9 @@ def min_cost_matching(
         if cost_matrix[row, col] > max_distance:
             unmatched_tracks.append(track_idx)
             unmatched_detections.append(detection_idx)
+            print("COST EXCEEDED!!", row, col, cost_matrix[row, col])
         else:
+            print("cost not exceeded", row, col, cost_matrix[row, col])
             matches.append((track_idx, detection_idx))
     return matches, unmatched_tracks, unmatched_detections
 
@@ -115,6 +122,7 @@ def matching_cascade(
 
     """
     if track_indices is None:
+        assert False
         track_indices = list(range(len(tracks)))
     if detection_indices is None:
         detection_indices = list(range(len(detections)))
@@ -122,6 +130,7 @@ def matching_cascade(
     unmatched_detections = detection_indices
     matches = []
     for level in range(cascade_depth):
+        # print("matching cascade level", level)
         if len(unmatched_detections) == 0:  # No detections left
             break
 
@@ -184,7 +193,32 @@ def gate_cost_matrix(
         [detections[i].to_xyah() for i in detection_indices])
     for row, track_idx in enumerate(track_indices):
         track = tracks[track_idx]
+        print("gating distance TRACK STATS", track.mean, track.covariance, measurements)
         gating_distance = kf.gating_distance(
             track.mean, track.covariance, measurements, only_position)
+        print("gating distance in gate cost matrix", gating_distance)
         cost_matrix[row, gating_distance > gating_threshold] = gated_cost
     return cost_matrix
+
+if __name__ == "__main__":
+    mtx =   [[  100,   100,     1,     0 ],
+             [  100,     2, 21512 ,    0 ],
+             [    1,     4,  9852 ,    0 ],
+             [    6, 30252,   400  ,   0 ],]
+
+    mtx = np.array(mtx)
+    print(linear_assignment(mtx))
+
+    indices = [[  0,   0,     1,     0 ],
+             [  0,     1, 0 ,    0 ],
+             [    1,     0,  0 ,    0 ],
+             [    0, 0,   0  ,  1 ],]
+
+    out = []
+    for i in range(len(indices)):
+        for j in range(len(indices[i])):
+            if indices[i][j] == 1:
+                out.append([i, j])
+                continue
+        # assert False
+    print(np.array(out))

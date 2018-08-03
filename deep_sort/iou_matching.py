@@ -23,6 +23,8 @@ def iou(bbox, candidates):
         occluded by the candidate.
 
     """
+    # print("input to IOU: bbox, candidates", bbox, candidates)
+
     bbox_tl, bbox_br = bbox[:2], bbox[:2] + bbox[2:]
     candidates_tl = candidates[:, :2]
     candidates_br = candidates[:, :2] + candidates[:, 2:]
@@ -65,9 +67,14 @@ def iou_cost(tracks, detections, track_indices=None,
 
     """
     if track_indices is None:
+        assert False
         track_indices = np.arange(len(tracks))
     if detection_indices is None:
+        assert False
         detection_indices = np.arange(len(detections))
+
+
+    print("iou cost idxs", len(track_indices), len(detection_indices))
 
     cost_matrix = np.zeros((len(track_indices), len(detection_indices)))
     for row, track_idx in enumerate(track_indices):
@@ -77,5 +84,32 @@ def iou_cost(tracks, detections, track_indices=None,
 
         bbox = tracks[track_idx].to_tlwh()
         candidates = np.asarray([detections[i].tlwh for i in detection_indices])
-        cost_matrix[row, :] = 1. - iou(bbox, candidates)
+        print("index", row, "bbox", bbox, "candidates", candidates)
+        scores = iou(bbox, candidates)
+        print("scores", scores)
+        cost_matrix[row, :] = 1. - scores
+    print("iou cost:", cost_matrix)
     return cost_matrix
+
+if __name__ == "__main__":
+
+    box = [  403 ,231 ,24 ,72  ]
+    candidates = \
+    [  [411 ,197, 46 ,118 ],
+    [856, 229, 33 ,77 ],
+    [757 ,238, 22, 60 ]]
+
+    print(iou(np.array(box), np.array(candidates)))
+
+    # index 1
+    # box 855.395 225.165 26.3955 82.8351 
+    #  411 197 46 118 
+    #  856 229 33 77 
+    #  757 238 22 60 
+    # index 2
+    # box 750.838 236.835 21.4897 61.3299 
+    #  411 197 46 118 
+    #  856 229 33 77 
+    #  757 238 22 60 
+
+        # iou()

@@ -91,14 +91,17 @@ class Tracker:
             np.asarray(features), np.asarray(targets), active_targets)
 
     def _match(self, detections):
+        # print('matching, dets size', len(detections))
 
         def gated_metric(tracks, dets, track_indices, detection_indices):
             features = np.array([dets[i].feature for i in detection_indices])
             targets = np.array([tracks[i].track_id for i in track_indices])
             cost_matrix = self.metric.distance(features, targets)
+            print("GATED METRIC: intermediate cost matrix!", cost_matrix)
             cost_matrix = linear_assignment.gate_cost_matrix(
                 self.kf, cost_matrix, tracks, dets, track_indices,
                 detection_indices)
+            print("GATED METRIC: final cost matrix", cost_matrix)
 
             return cost_matrix
 
@@ -108,11 +111,15 @@ class Tracker:
         unconfirmed_tracks = [
             i for i, t in enumerate(self.tracks) if not t.is_confirmed()]
 
+        # print("matching, confirmed", confirmed_tracks, "unconfirmed", unconfirmed_tracks)
+
         # Associate confirmed tracks using appearance features.
         matches_a, unmatched_tracks_a, unmatched_detections = \
             linear_assignment.matching_cascade(
                 gated_metric, self.metric.matching_threshold, self.max_age,
                 self.tracks, detections, confirmed_tracks)
+
+        print("matching cascade (part a) done", matches_a, unmatched_tracks_a, unmatched_detections)
 
         # Associate remaining tracks together with unconfirmed tracks using IOU.
         iou_track_candidates = unconfirmed_tracks + [
@@ -127,7 +134,10 @@ class Tracker:
                 detections, iou_track_candidates, unmatched_detections)
 
         matches = matches_a + matches_b
+        # print("set", unmatched_tracks_a, unmatched_tracks_b)
         unmatched_tracks = list(set(unmatched_tracks_a + unmatched_tracks_b))
+
+        print("final matches from a + b", matches, unmatched_tracks, unmatched_detections)
         return matches, unmatched_tracks, unmatched_detections
 
     def _initiate_track(self, detection):

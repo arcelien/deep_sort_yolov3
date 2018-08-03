@@ -48,11 +48,15 @@ def _cosine_distance(a, b, data_is_normalized=False):
         contains the squared distance between `a[i]` and `b[j]`.
 
     """
+    # print("cosine dist stuff", a, b)
     if not data_is_normalized:
+        # print('norm factor', np.linalg.norm(a, axis=1, keepdims=True))
         a = np.asarray(a) / np.linalg.norm(a, axis=1, keepdims=True)
         b = np.asarray(b) / np.linalg.norm(b, axis=1, keepdims=True)
-    return 1. - np.dot(a, b.T)
-
+        # print('normalized:', a, b)
+    out = 1. - np.dot(a, b.T)
+    # print("cosine dist output", out)
+    return out
 
 def _nn_euclidean_distance(x, y):
     """ Helper function for nearest neighbor distance metric (Euclidean).
@@ -80,11 +84,11 @@ def _nn_cosine_distance(x, y):
 
     Parameters
     ----------
+
     x : ndarray
         A matrix of N row-vectors (sample points).
     y : ndarray
         A matrix of M row-vectors (query points).
-
     Returns
     -------
     ndarray
@@ -172,7 +176,10 @@ class NearestNeighborDistanceMetric(object):
 
         """
         cost_matrix = np.zeros((len(targets), len(features)))
+        # print("computing DISTANCE, number of samples", len(self.samples))
         for i, target in enumerate(targets):
+            # print("stuff in dict", len(self.samples[target]))
+            # print("computing FEATURE distance, target:",target,"size",len(self.samples[target]))
             cost_matrix[i, :] = self._metric(self.samples[target], features)
         return cost_matrix
 
@@ -180,10 +187,23 @@ class NearestNeighborDistanceMetric(object):
 if __name__ == "__main__":
     m = np.eye(2)
     n = np.eye(2)
-    print(_cosine_distance(m, n))
-    print(_nn_cosine_distance(m, n))
+    print('cosine distance of identity', _cosine_distance(m, n))
+    print('nn cosine distance of identity',_nn_cosine_distance(m, n))
     m = np.array([[1,2], [3,4]])
     n = np.matrix([[1,2], [3,4]])
-    print(_cosine_distance(m, n, data_is_normalized=True))
-    print(_nn_cosine_distance(m, n))
+    print('matricies x, y:', m, n)
+    print('cosine distance of m, n', _cosine_distance(m, n, data_is_normalized=True))
+    print('nn cosine distance of m, n', _nn_cosine_distance(m, n))
+
+    print('=' * 80)
+    print('testing distance metric')
+    dmetric = NearestNeighborDistanceMetric("cosine", 0.7)
+    features = np.array([[0.5, 0.5], [.25, .75]])
+    targets = [0, 1]
+    active_targets = [0, 1]
+    dmetric.partial_fit(features, targets, active_targets)
+    print("dmetric samples", dmetric.samples)
+    print("cost matrix", dmetric.distance(features, targets))
+    
+
 
