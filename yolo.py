@@ -22,8 +22,8 @@ import tensorflow as tf
 
 class YOLO(object):
     def __init__(self):
-        self.do_freezing = False
-        self.is_frozen = True
+        self.do_freezing = True
+        self.is_frozen = not self.do_freezing
         self.freeze_quantized = False
 
         if self.do_freezing or not self.is_frozen:
@@ -149,9 +149,9 @@ class YOLO(object):
             sess = self.sess
 
             # save to tensorboard to visualize
-            summary_writer = tf.summary.FileWriter(logdir='./logs/')
-            summary_writer.add_graph(graph=sess.graph)
-            print('saved tb graph')
+            # summary_writer = tf.summary.FileWriter(logdir='./logs/')
+            # summary_writer.add_graph(graph=sess.graph)
+            # print('saved tb graph')
 
             pred_node_names = ["output_boxes", "output_scores", "output_classes"]
             output_fld = './'
@@ -168,7 +168,7 @@ class YOLO(object):
                 constant_graph = graph_util.convert_variables_to_constants(sess, sess.graph.as_graph_def(), pred_node_names)
             output_model_file += ".pb"
             graph_io.write_graph(constant_graph, output_fld, output_model_file, as_text=False)
-            print('saved the freezed graph (ready for inference) at: ', output_fld + output_model_file + '.pb')
+            print('saved the freezed graph (ready for inference) at: ', output_fld + output_model_file)
             assert False
 
         if self.do_freezing and not self.is_frozen:

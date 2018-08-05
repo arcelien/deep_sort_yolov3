@@ -39,14 +39,14 @@ def main(yolo):
         ret[2:] += ret[:2]
         return ret
 
-    for bbox in boxs:
-        bbox = tlbr(bbox)
-        print('printed, postprocessed bbox [x1/y1/x2/y2]:', bbox)
-        cv2.rectangle(frame, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), (255, 0, 0), 2)
+    # for bbox in boxs:
+    #     bbox = tlbr(bbox)
+    #     print('printed, postprocessed bbox [x1/y1/x2/y2]:', bbox)
+    #    cv2.rectangle(frame, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), (255, 0, 0), 2)
 
-    cv2.imshow('', image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # cv2.imshow('', image)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
 
 if __name__ == '__main__':
     main(YOLO())
