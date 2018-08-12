@@ -20,6 +20,10 @@ from tools import generate_detections as gdet
 from deep_sort.detection import Detection as ddet
 warnings.filterwarnings('ignore')
 
+import tensorflow as tf
+# config = tf.ConfigProto()
+# config.gpu_options.allow_growth=True
+# sess = tf.Session(config=config)
 
 def main(yolo):
 
@@ -39,7 +43,7 @@ def main(yolo):
     index = 0
     image_name = "isaac-dataset/image_"
     while True:
-        if index < 13 + 3:
+        if index < 20:
             index += 1
             continue
 		
@@ -79,7 +83,7 @@ def main(yolo):
             bbox = det.to_tlbr()
             cv2.rectangle(frame,(int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])),(255,0,0), 2)
             
-        # cv2.imshow('', frame)
+        cv2.imshow('', frame)
             
         fps  = ( fps + (1./(time.time()-t1)) ) / 2
         print("fps= %f"%(fps))
@@ -88,7 +92,7 @@ def main(yolo):
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
-        # time.sleep(0.1)
+        time.sleep(0.5)
 
 if __name__ == '__main__':
     main(YOLO())

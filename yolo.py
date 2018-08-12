@@ -23,7 +23,7 @@ import tensorflow as tf
 class YOLO(object):
     def __init__(self):
         self.do_freezing = False
-        self.is_frozen = True
+        self.is_frozen = False
         self.freeze_quantized = False
 
         if self.do_freezing or not self.is_frozen:
@@ -34,13 +34,25 @@ class YOLO(object):
             self.iou = 0.5
             self.class_names = self._get_class()
             self.anchors = self._get_anchors()
-            self.sess = K.get_session()
+
+            config = tf.ConfigProto()
+            config.gpu_options.allow_growth = True
+            self.sess = tf.Session(config=config)
+            K.set_session(self.sess)
+            # self.sess = K.get_session()
+
             self.model_image_size = (None, None) # fixed size or (None, None)
             self.is_fixed_size = self.model_image_size != (None, None)
             self.boxes, self.scores, self.classes = self.generate()
 
         else:
-            self.sess = K.get_session()
+            config = tf.ConfigProto()
+            config.gpu_options.allow_growth = True
+            self.sess = tf.Session(config=config)
+            K.set_session(self.sess)
+            # self.sess = K.get_session()
+
+
             self.model_image_size = (None, None) # fixed size or (None, None)
             self.is_fixed_size = self.model_image_size != (None, None)
             self.classes_path = 'model_data/coco_classes.txt'
@@ -66,6 +78,7 @@ class YOLO(object):
                     self.boxes = sess.graph.get_tensor_by_name("output_boxes:0")
                     self.scores = sess.graph.get_tensor_by_name("output_scores:0")
                     self.classes = sess.graph.get_tensor_by_name("output_classes:0")
+                    # self.input_image_shape = sess.graph.get_tensor_by_name("Placeholder_59:0")
                     self.input_image_shape = sess.graph.get_tensor_by_name("Placeholder_366:0")
                     self.yolo_input = sess.graph.get_tensor_by_name("input_1:0")
 
@@ -124,7 +137,7 @@ class YOLO(object):
         image_data /= 255.
         image_data = np.expand_dims(image_data, 0)  # Add batch dimension.
 
-        if self.do_freezing and not self.is_frozen:
+        if not self.is_frozen:
             out_boxes, out_scores, out_classes = self.sess.run(
                 [self.boxes, self.scores, self.classes],
                 feed_dict={

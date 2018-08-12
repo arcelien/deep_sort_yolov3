@@ -150,7 +150,7 @@ class KalmanFilter(object):
         mean = np.dot(self._update_mat, mean)
         covariance = np.linalg.multi_dot((
             self._update_mat, covariance, self._update_mat.T))
-        # print("mean, cov, inoovation cov ", mean, covariance, innovation_cov)
+        # print("inoovation cov ", innovation_cov)
 
         return mean, covariance + innovation_cov
 
@@ -178,6 +178,9 @@ class KalmanFilter(object):
 
         chol_factor, lower = scipy.linalg.cho_factor(
             projected_cov, lower=True, check_finite=False)
+        # print("=" * 80)
+        # print("old mean", mean)
+        # print("proj mean", mean)
         kalman_gain = scipy.linalg.cho_solve(
             (chol_factor, lower), np.dot(covariance, self._update_mat.T).T,
             check_finite=False).T
@@ -186,6 +189,7 @@ class KalmanFilter(object):
         new_mean = mean + np.dot(innovation, kalman_gain.T)
         new_covariance = covariance - np.linalg.multi_dot((
             kalman_gain, projected_cov, kalman_gain.T))
+        # print("new mean", new_mean)
         return new_mean, new_covariance
 
     def gating_distance(self, mean, covariance, measurements,
@@ -219,20 +223,25 @@ class KalmanFilter(object):
 
         """
         mean, covariance = self.project(mean, covariance)
+        # print("cov", covariance)
         if only_position:
             mean, covariance = mean[:2], covariance[:2, :2]
             measurements = measurements[:, :2]
 
         cholesky_factor = np.linalg.cholesky(covariance)
 
-        print("measurements", measurements)
-        print("CHOLESKY FACTOR", cholesky_factor)
+        # print("CHOLESKY FACTOR", cholesky_factor)
 
+        # print("=" * 80)
+        # print('measurements,', measurements)
+        # print('mean', mean)
         d = measurements - mean
+        # print('d', d)
         z = scipy.linalg.solve_triangular(
             cholesky_factor, d.T, lower=True, check_finite=False,
             overwrite_b=True)
         squared_maha = np.sum(z * z, axis=0)
-        print("d, z, squared_maha", d, z, squared_maha)
-        assert False
+        # print("z, squared_maha")
+        # print(z)
+        # print(squared_maha)
         return squared_maha

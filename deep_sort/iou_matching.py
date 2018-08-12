@@ -1,7 +1,7 @@
 # vim: expandtab:ts=4:sw=4
 from __future__ import absolute_import
 import numpy as np
-from . import linear_assignment
+# from . import linear_assignment
 
 
 def iou(bbox, candidates):
@@ -88,16 +88,14 @@ def iou_cost(tracks, detections, track_indices=None,
         scores = iou(bbox, candidates)
         print("scores", scores)
         cost_matrix[row, :] = 1. - scores
-    print("iou cost:", cost_matrix)
+    print("iou cost:\n", cost_matrix)
     return cost_matrix
 
 if __name__ == "__main__":
 
-    box = [  403 ,231 ,24 ,72  ]
+    box = [  464.249 , 235.307, 17.3639 , 66.3394  ]
     candidates = \
-    [  [411 ,197, 46 ,118 ],
-    [856, 229, 33 ,77 ],
-    [757 ,238, 22, 60 ]]
+    [  [475 ,236, 16 ,65 ]]
 
     print(iou(np.array(box), np.array(candidates)))
 

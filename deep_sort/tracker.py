@@ -105,20 +105,25 @@ class Tracker:
 
             return cost_matrix
 
-        # Split track set into confirmed and unconfirmed tracks.
+        # # Split track set into confirmed and unconfirmed tracks.
         confirmed_tracks = [
             i for i, t in enumerate(self.tracks) if t.is_confirmed()]
         unconfirmed_tracks = [
             i for i, t in enumerate(self.tracks) if not t.is_confirmed()]
 
         # print("matching, confirmed", confirmed_tracks, "unconfirmed", unconfirmed_tracks)
+        is_part_a_dummy = False
 
         # Associate confirmed tracks using appearance features.
-        matches_a, unmatched_tracks_a, unmatched_detections = \
-            linear_assignment.matching_cascade(
-                gated_metric, self.metric.matching_threshold, self.max_age,
-                self.tracks, detections, confirmed_tracks)
-
+        if not is_part_a_dummy:
+            matches_a, unmatched_tracks_a, unmatched_detections = \
+                linear_assignment.matching_cascade(
+                    gated_metric, self.metric.matching_threshold, self.max_age,
+                    self.tracks, detections, confirmed_tracks)
+        else:
+            print('part a is disabled')
+            matches_a = []
+            unmatched_tracks_a, unmatched_detections = confirmed_tracks, list(range(len(detections)))
         print("matching cascade (part a) done", matches_a, unmatched_tracks_a, unmatched_detections)
 
         # Associate remaining tracks together with unconfirmed tracks using IOU.
