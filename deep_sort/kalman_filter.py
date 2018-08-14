@@ -154,6 +154,38 @@ class KalmanFilter(object):
 
         return mean, covariance + innovation_cov
 
+    def project_obs(self, mean, covariance, observation):
+        """Project state distribution to measurement space.
+
+        Parameters
+        ----------
+        mean : ndarray
+            The state's mean vector (8 dimensional array).
+        covariance : ndarray
+            The state's covariance matrix (8x8 dimensional).
+
+        Returns
+        -------
+        (ndarray, ndarray)
+            Returns the projected mean and covariance matrix of the given state
+            estimate.
+
+        """
+        std = [
+            self._std_weight_position * observation[3],
+            self._std_weight_position * observation[3],
+            1e-1,
+            self._std_weight_position * observation[3]]
+        innovation_cov = np.diag(np.square(std))
+
+        mean = np.dot(self._update_mat, mean)
+        covariance = np.linalg.multi_dot((
+            self._update_mat, covariance, self._update_mat.T))
+        # print("mean, cov, inoovation cov ", mean, covariance, innovation_cov)
+
+        return mean, covariance + innovation_cov
+
+
     def update(self, mean, covariance, measurement):
         """Run Kalman filter correction step.
 
@@ -174,7 +206,7 @@ class KalmanFilter(object):
             Returns the measurement-corrected state distribution.
 
         """
-        projected_mean, projected_cov = self.project(mean, covariance)
+        projected_mean, projected_cov = self.project_obs(mean, covariance, measurement)
 
         chol_factor, lower = scipy.linalg.cho_factor(
             projected_cov, lower=True, check_finite=False)

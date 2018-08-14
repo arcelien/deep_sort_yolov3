@@ -45,13 +45,13 @@ def main(yolo):
     saved_inputs = []
     saved_outputs = []
     while True:
-        if index < 10:
+        if index < 21:
             index += 1
             continue
 		
         image_name_full = image_name + "%05d" % index +".png"
         print(image_name_full)
-        if index >= 20:
+        if index >= 81:
             break
         frame = cv2.imread(image_name_full)  # frame shape 640*480*3
         index += 1
