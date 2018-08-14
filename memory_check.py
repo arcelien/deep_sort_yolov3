@@ -37,6 +37,8 @@ def main(yolo):
 
     saved_inputs = []
     saved_outputs = []
+    print('sleeping before')
+    time.sleep(10)
     while True:
         if index < 21:
             index += 1
