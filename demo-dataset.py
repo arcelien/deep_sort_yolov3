@@ -45,13 +45,13 @@ def main(yolo):
     saved_inputs = []
     saved_outputs = []
     while True:
-        if index < 3:
+        if index < 10:
             index += 1
             continue
 		
         image_name_full = image_name + "%05d" % index +".png"
         print(image_name_full)
-        if index > 81:
+        if index >= 20:
             break
         frame = cv2.imread(image_name_full)  # frame shape 640*480*3
         index += 1
@@ -86,7 +86,7 @@ def main(yolo):
             if track.is_confirmed() and track.time_since_update >1 :
                 continue 
             bbox = track.to_tlbr()
-            one_output.append(bbox)
+            one_output.append([track.track_id, bbox])
 
         saved_outputs.append(one_output)
         #     cv2.rectangle(frame, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])),(255,255,255), 2)
@@ -110,7 +110,61 @@ def main(yolo):
     print("end, showing saved in/out")
     print(saved_inputs[0])
     print(saved_outputs[0])
-    
+
+    file = open('python_tracker_values.txt', 'w+')
+    file.write('len of each input\n')
+    file.write(str([len(inp) for inp in saved_inputs]))
+
+    file.write('\nlen of each output\n')
+    file.write(str([len(out) for out in saved_outputs]))
+
+
+    file.write('\nINPUT: bbox\n')
+    file.write("{")
+    for input in saved_inputs:
+        file.write("{")
+        for tlwh, confidence, feature in input:
+            file.write("{")
+            for b in tlwh:
+                file.write(str(b) + ", ")
+            file.write("},")
+        file.write("},")
+    file.write("}\n")
+
+    file.write('\nINPUT: features\n')
+    file.write("{")
+    for input in saved_inputs:
+        file.write("{")
+        for tlwh, confidence, feature in input:
+            file.write("{")
+            for f in feature:
+                file.write(str(f) + ", ")
+            file.write("},")
+        file.write("},")
+    file.write("}\n")
+
+    file.write('\nOUTPUT: bboxes\n')
+    file.write("{")
+    for output in saved_outputs:
+        file.write("{")
+        for tid, bbox in output:
+            file.write("{")
+            for b in bbox:
+                file.write(str(b) + ", ")
+            file.write("},")
+        file.write("},")
+    file.write("}\n")
+
+    file.write('\nOUTPUT: IDs\n')
+    file.write("{")
+    for output in saved_outputs:
+        file.write("{")
+        for tid, bbox in output:
+            file.write(str(tid) + ", ")
+        file.write("},")
+    file.write("}\n")
+
+    file.close()
     
 
 if __name__ == '__main__':
