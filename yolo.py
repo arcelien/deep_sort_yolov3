@@ -23,7 +23,7 @@ import tensorflow as tf
 class YOLO(object):
     def __init__(self):
         self.do_freezing = False # whether to save a freezed model
-        self.is_frozen = True # whether to load a frozen model or just normal weights
+        self.is_frozen = False # whether to load a frozen model or just normal weights
         self.freeze_quantized = False # whether to do quantization while freezing
 
         if self.do_freezing or not self.is_frozen:
@@ -34,14 +34,24 @@ class YOLO(object):
             self.iou = 0.5
             self.class_names = self._get_class()
             self.anchors = self._get_anchors()
-            self.sess = K.get_session()
-            self.model_image_size = (None, None) # fixed size or (None, None)
+
+            config = tf.ConfigProto()
+            config.gpu_options.allow_growth = True
+            self.sess = tf.Session(config=config)
+            K.set_session(self.sess)
+            # self.sess = K.get_session()
+
+            self.model_image_size = (512, 960) # fixed size or (None, None)
             self.is_fixed_size = self.model_image_size != (None, None)
             self.boxes, self.scores, self.classes = self.generate()
 
         else:
-            self.sess = K.get_session()
-            self.model_image_size = (None, None) # fixed size or (None, None)
+            config = tf.ConfigProto()
+            config.gpu_options.allow_growth = True
+            self.sess = tf.Session(config=config)
+            K.set_session(self.sess)
+            # self.sess = K.get_session()
+            self.model_image_size = (512, 960) # fixed size or (None, None)
             self.is_fixed_size = self.model_image_size != (None, None)
             self.classes_path = 'model_data/coco_classes.txt'
             self.class_names = self._get_class()
@@ -124,7 +134,7 @@ class YOLO(object):
         image_data /= 255.
         image_data = np.expand_dims(image_data, 0)  # Add batch dimension.
 
-        if self.do_freezing and not self.is_frozen:
+        if self.do_freezing or not self.is_frozen:
             out_boxes, out_scores, out_classes = self.sess.run(
                 [self.boxes, self.scores, self.classes],
                 feed_dict={

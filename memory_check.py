@@ -37,13 +37,12 @@ def main(yolo):
 
     saved_inputs = []
     saved_outputs = []
-    print('sleeping before')
-    time.sleep(10)
+    # print('sleeping before')
+    # time.sleep(1)
     while True:
         if index < 21:
             index += 1
             continue
-        time.sleep(10)
 
         image_name_full = image_name + "%05d" % index + ".png"
         print(image_name_full)
