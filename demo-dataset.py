@@ -19,6 +19,7 @@ from deep_sort.tracker import Tracker
 from tools import generate_detections as gdet
 from deep_sort.detection import Detection as ddet
 warnings.filterwarnings('ignore')
+from yolo3.utils import letterbox_image
 
 import tensorflow as tf
 # config = tf.ConfigProto()
@@ -43,7 +44,7 @@ def main(yolo):
     index = 0
     image_name = "isaac-dataset/image_"
     while True:
-        if index < 20:
+        if index < 1:
             index += 1
             continue
 		
@@ -55,8 +56,16 @@ def main(yolo):
         index += 1
         t1 = time.time()
 
+        frame = cv2.resize(frame, dsize=(512, 288))
+        # frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+        # frame_resized = frame.resize(size=(512, 288))
         image = Image.fromarray(frame)
+
+        # frame = np.array(letterbox_image(image, tuple((512, 288))))
         boxs = yolo.detect_image(image)
+
+        print("boxes", boxs)
+
         # print("box_num",len(boxs))
         features = encoder(frame,boxs)
         # score to 1.0 here).
@@ -92,7 +101,7 @@ def main(yolo):
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
-        time.sleep(0.5)
+        # time.sleep(0.5)
 
 if __name__ == '__main__':
     main(YOLO())

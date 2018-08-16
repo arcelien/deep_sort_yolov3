@@ -74,7 +74,7 @@ def iou_cost(tracks, detections, track_indices=None,
         detection_indices = np.arange(len(detections))
 
 
-    print("iou cost idxs", len(track_indices), len(detection_indices))
+    # print("iou cost idxs", len(track_indices), len(detection_indices))
 
     cost_matrix = np.zeros((len(track_indices), len(detection_indices)))
     for row, track_idx in enumerate(track_indices):
@@ -84,11 +84,11 @@ def iou_cost(tracks, detections, track_indices=None,
 
         bbox = tracks[track_idx].to_tlwh()
         candidates = np.asarray([detections[i].tlwh for i in detection_indices])
-        print("index", row, "bbox", bbox, "candidates", candidates)
+        # print("index", row, "bbox", bbox, "candidates", candidates)
         scores = iou(bbox, candidates)
-        print("scores", scores)
+        # print("scores", scores)
         cost_matrix[row, :] = 1. - scores
-    print("iou cost:\n", cost_matrix)
+    # print("iou cost:\n", cost_matrix)
     return cost_matrix
 
 if __name__ == "__main__":

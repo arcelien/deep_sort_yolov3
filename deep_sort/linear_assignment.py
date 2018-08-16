@@ -77,7 +77,7 @@ def min_cost_matching(
             unmatched_detections.append(detection_idx)
             print("COST EXCEEDED!!", row, col, cost_matrix[row, col])
         else:
-            print("cost not exceeded", row, col, cost_matrix[row, col])
+            # print("cost not exceeded", row, col, cost_matrix[row, col])
             matches.append((track_idx, detection_idx))
     return matches, unmatched_tracks, unmatched_detections
 
@@ -141,8 +141,8 @@ def matching_cascade(
         if len(track_indices_l) == 0:  # Nothing to match at this level
             continue
 
-        if level > 0:
-            print("matching cascade det index", unmatched_detections)
+        # if level > 0:
+            # print("matching cascade det index", unmatched_detections)
         matches_l, _, unmatched_detections = \
             min_cost_matching(
                 distance_metric, max_distance, tracks, detections,
@@ -193,16 +193,16 @@ def gate_cost_matrix(
     gating_threshold = kalman_filter.chi2inv95[gating_dim]
     measurements = np.asarray(
         [detections[i].to_xyah() for i in detection_indices])
-    print("det indices in GATE COST MATRIX", detection_indices)
+    # print("det indices in GATE COST MATRIX", detection_indices)
     for row, track_idx in enumerate(track_indices):
         track = tracks[track_idx]
-        print("gating distance TRACK STATS")
+        # print("gating distance TRACK STATS")
         # print("mean", track.mean)
         # print("cov", track.covariance)
-        print("measurements", measurements)
+        # print("measurements", measurements)
         gating_distance = kf.gating_distance(
             track.mean, track.covariance, measurements, only_position)
-        print("gating distance in gate cost matrix", gating_distance)
+        # print("gating distance in gate cost matrix", gating_distance)
         cost_matrix[row, gating_distance > gating_threshold] = gated_cost
     return cost_matrix
 

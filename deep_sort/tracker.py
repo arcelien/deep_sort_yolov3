@@ -97,11 +97,11 @@ class Tracker:
             features = np.array([dets[i].feature for i in detection_indices])
             targets = np.array([tracks[i].track_id for i in track_indices])
             cost_matrix = self.metric.distance(features, targets)
-            print("GATED METRIC: intermediate cost matrix!", cost_matrix)
+            # print("GATED METRIC: intermediate cost matrix!", cost_matrix)
             cost_matrix = linear_assignment.gate_cost_matrix(
                 self.kf, cost_matrix, tracks, dets, track_indices,
                 detection_indices)
-            print("GATED METRIC: final cost matrix", cost_matrix)
+            # print("GATED METRIC: final cost matrix", cost_matrix)
 
             return cost_matrix
 
@@ -124,7 +124,7 @@ class Tracker:
             print('part a is disabled')
             matches_a = []
             unmatched_tracks_a, unmatched_detections = confirmed_tracks, list(range(len(detections)))
-        print("matching cascade (part a) done", matches_a, unmatched_tracks_a, unmatched_detections)
+        # print("matching cascade (part a) done", matches_a, unmatched_tracks_a, unmatched_detections)
 
         # Associate remaining tracks together with unconfirmed tracks using IOU.
         iou_track_candidates = unconfirmed_tracks + [
@@ -142,7 +142,7 @@ class Tracker:
         # print("set", unmatched_tracks_a, unmatched_tracks_b)
         unmatched_tracks = list(set(unmatched_tracks_a + unmatched_tracks_b))
 
-        print("final matches from a + b", matches, unmatched_tracks, unmatched_detections)
+        # print("final matches from a + b", matches, unmatched_tracks, unmatched_detections)
         return matches, unmatched_tracks, unmatched_detections
 
     def _initiate_track(self, detection):
