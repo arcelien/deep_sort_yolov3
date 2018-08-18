@@ -22,7 +22,7 @@ import tensorflow as tf
 
 class YOLO(object):
     def __init__(self):
-        self.do_freezing = False # whether to save a freezed model
+        self.do_freezing = True # whether to save a freezed model
         self.is_frozen = False # whether to load a frozen model or just normal weights
         self.freeze_quantized = False # whether to do quantization while freezing
 
@@ -41,7 +41,7 @@ class YOLO(object):
             K.set_session(self.sess)
             # self.sess = K.get_session()
 
-            self.model_image_size = (512, 960) # fixed size or (None, None)
+            self.model_image_size = (None, None) # fixed size or (None, None)
             self.is_fixed_size = self.model_image_size != (None, None)
             self.boxes, self.scores, self.classes = self.generate()
 
@@ -51,7 +51,7 @@ class YOLO(object):
             self.sess = tf.Session(config=config)
             K.set_session(self.sess)
             # self.sess = K.get_session()
-            self.model_image_size = (512, 960) # fixed size or (None, None)
+            self.model_image_size = (None, None) # fixed size or (None, None)
             self.is_fixed_size = self.model_image_size != (None, None)
             self.classes_path = 'model_data/coco_classes.txt'
             self.class_names = self._get_class()
@@ -76,7 +76,7 @@ class YOLO(object):
                     self.boxes = sess.graph.get_tensor_by_name("output_boxes:0")
                     self.scores = sess.graph.get_tensor_by_name("output_scores:0")
                     self.classes = sess.graph.get_tensor_by_name("output_classes:0")
-                    self.input_image_shape = sess.graph.get_tensor_by_name("Placeholder_59:0")
+                    # self.input_image_shape = sess.graph.get_tensor_by_name("Placeholder_59:0")
                     self.yolo_input = sess.graph.get_tensor_by_name("input_1:0")
 
     def _get_class(self):
@@ -112,10 +112,12 @@ class YOLO(object):
         random.shuffle(self.colors)  # Shuffle colors to decorrelate adjacent classes.
         random.seed(None)  # Reset seed to default.
 
+        image_shape = tf.shape(self.yolo_model.input)[1:3] #[::-1]
+
         # Generate output tensor targets for filtered bounding boxes.
-        self.input_image_shape = K.placeholder(shape=(2, ))
+        # self.input_image_shape = K.placeholder(shape=(2, ))
         boxes, scores, classes = yolo_eval(self.yolo_model.output, self.anchors,
-                len(self.class_names), self.input_image_shape,
+                len(self.class_names), image_shape,
                 score_threshold=self.score, iou_threshold=self.iou)
         return boxes, scores, classes
 
@@ -139,7 +141,7 @@ class YOLO(object):
                 [self.boxes, self.scores, self.classes],
                 feed_dict={
                     self.yolo_model.input: image_data,
-                    self.input_image_shape: [image.size[1], image.size[0]],
+                    # self.input_image_shape: [image.size[1], image.size[0]],
                     K.learning_phase(): 0
                 })
         else:
@@ -149,7 +151,7 @@ class YOLO(object):
                 [self.boxes, self.scores, self.classes],
                 feed_dict={
                     self.yolo_input: image_data,
-                    self.input_image_shape: [image.size[1], image.size[0]],
+                    # self.input_image_shape: [image.size[1], image.size[0]],
                     K.learning_phase(): 0
                 })
 

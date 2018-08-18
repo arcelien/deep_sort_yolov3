@@ -19,7 +19,7 @@ from deep_sort.tracker import Tracker
 from tools import generate_detections as gdet
 from deep_sort.detection import Detection as ddet
 warnings.filterwarnings('ignore')
-
+from yolo3.utils import letterbox_image
 
 def main(yolo):
 
@@ -54,6 +54,9 @@ def main(yolo):
         if index >= 81:
             break
         frame = cv2.imread(image_name_full)  # frame shape 640*480*3
+        frame = cv2.resize(frame, dsize=(512, 288))
+
+
         index += 1
         t1 = time.time()
         print('input image shape', frame.shape)
@@ -88,15 +91,15 @@ def main(yolo):
             bbox = track.to_tlbr()
             one_output.append([track.track_id, bbox])
 
-        saved_outputs.append(one_output)
-        #     cv2.rectangle(frame, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])),(255,255,255), 2)
-        #     cv2.putText(frame, str(track.track_id),(int(bbox[0]), int(bbox[1])),0, 5e-3 * 200, (0,255,0),2)
+        # saved_outputs.append(one_output)
+            cv2.rectangle(frame, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])),(255,255,255), 2)
+            cv2.putText(frame, str(track.track_id),(int(bbox[0]), int(bbox[1])),0, 5e-3 * 200, (0,255,0),2)
 
-        # for det in detections:
-        #     bbox = det.to_tlbr()
-        #     cv2.rectangle(frame,(int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])),(255,0,0), 2)
+        for det in detections:
+            bbox = det.to_tlbr()
+            cv2.rectangle(frame,(int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])),(255,0,0), 2)
             
-        # cv2.imshow('', frame)
+        cv2.imshow('', frame)
             
         fps  = ( fps + (1./(time.time()-t1)) ) / 2
         print("fps= %f"%(fps))
@@ -107,64 +110,66 @@ def main(yolo):
 
         # time.sleep(0.1)
 
-    print("end, showing saved in/out")
-    print(saved_inputs[0])
-    print(saved_outputs[0])
+    test_case = False
+    if test_case:
+        print("end, showing saved in/out")
+        print(saved_inputs[0])
+        print(saved_outputs[0])
 
-    file = open('python_tracker_values.txt', 'w+')
-    file.write('len of each input\n')
-    file.write(str([len(inp) for inp in saved_inputs]))
+        file = open('python_tracker_values.txt', 'w+')
+        file.write('len of each input\n')
+        file.write(str([len(inp) for inp in saved_inputs]))
 
-    file.write('\nlen of each output\n')
-    file.write(str([len(out) for out in saved_outputs]))
+        file.write('\nlen of each output\n')
+        file.write(str([len(out) for out in saved_outputs]))
 
 
-    file.write('\nINPUT: bbox\n')
-    file.write("{")
-    for input in saved_inputs:
+        file.write('\nINPUT: bbox\n')
         file.write("{")
-        for tlwh, confidence, feature in input:
+        for input in saved_inputs:
             file.write("{")
-            for b in tlwh:
-                file.write(str(b) + ", ")
+            for tlwh, confidence, feature in input:
+                file.write("{")
+                for b in tlwh:
+                    file.write(str(b) + ", ")
+                file.write("},")
             file.write("},")
-        file.write("},")
-    file.write("}\n")
+        file.write("}\n")
 
-    file.write('\nINPUT: features\n')
-    file.write("{")
-    for input in saved_inputs:
+        file.write('\nINPUT: features\n')
         file.write("{")
-        for tlwh, confidence, feature in input:
+        for input in saved_inputs:
             file.write("{")
-            for f in feature:
-                file.write(str(f) + ", ")
+            for tlwh, confidence, feature in input:
+                file.write("{")
+                for f in feature:
+                    file.write(str(f) + ", ")
+                file.write("},")
             file.write("},")
-        file.write("},")
-    file.write("}\n")
+        file.write("}\n")
 
-    file.write('\nOUTPUT: bboxes\n')
-    file.write("{")
-    for output in saved_outputs:
+        file.write('\nOUTPUT: bboxes\n')
         file.write("{")
-        for tid, bbox in output:
+        for output in saved_outputs:
             file.write("{")
-            for b in bbox:
-                file.write(str(b) + ", ")
+            for tid, bbox in output:
+                file.write("{")
+                for b in bbox:
+                    file.write(str(b) + ", ")
+                file.write("},")
             file.write("},")
-        file.write("},")
-    file.write("}\n")
+        file.write("}\n")
 
-    file.write('\nOUTPUT: IDs\n')
-    file.write("{")
-    for output in saved_outputs:
+        file.write('\nOUTPUT: IDs\n')
         file.write("{")
-        for tid, bbox in output:
-            file.write(str(tid) + ", ")
-        file.write("},")
-    file.write("}\n")
+        for output in saved_outputs:
+            file.write("{")
+            for tid, bbox in output:
+                file.write(str(tid) + ", ")
+            file.write("},")
+        file.write("}\n")
 
-    file.close()
+        file.close()
     
 
 if __name__ == '__main__':
